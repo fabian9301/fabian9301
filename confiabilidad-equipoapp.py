@@ -9,6 +9,30 @@ import io
 # 🟢 Configuración de la Página
 st.set_page_config(page_title="Análisis de Confiabilidad Weibull", layout="wide")
 
+# 🟢 Función para Generar el PDF
+def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    c.setFont("Helvetica", 12)
+
+    # 📌 Información del Análisis
+    c.drawString(100, 750, "Análisis de Confiabilidad Weibull")
+    c.drawString(100, 730, f"Equipo: {equipo}, Marca: {marca}, Modelo: {modelo}")
+    c.drawString(100, 710, f"β: {beta:.2f} - {interpretacion_beta}")
+    c.drawString(100, 690, f"η: {eta:.2f} horas")
+    c.drawString(100, 670, f"Confiabilidad a {horas_actuales} horas: {confiabilidad_actual:.2f}%")
+
+    # 📊 Tabla de Recomendaciones
+    c.drawString(100, 640, "Recomendaciones de Mantenimiento:")
+    y_pos = 620
+    for index, row in df_recomendaciones.iterrows():
+        c.drawString(120, y_pos, f"Confiabilidad {row['Confiabilidad (%)']}%: {row['Recomendación']}")
+        y_pos -= 20
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 # 🟢 Título
 st.title("📊 Análisis de Confiabilidad Weibull")
 
@@ -33,7 +57,7 @@ def weibull_analysis(tpf_values, period, horas_actuales):
     beta, ln_eta = np.polyfit(ln_tpf, ln_ln_1_mr, 1)
     eta = np.exp(-ln_eta / beta)
 
- # 📌 Análisis del Parámetro Beta
+    # 📌 Análisis del Parámetro Beta
     if beta < 1:
         interpretacion_beta = "⚠️ Fallas tempranas - Infant Mortality (Problemas de fabricación o instalación)"
     elif 1 <= beta < 3:
@@ -74,27 +98,24 @@ def weibull_analysis(tpf_values, period, horas_actuales):
         'ln(ln(1/(1-MR)))': ln_ln_1_mr
     })
 
-    return beta, eta, confiabilidad_actual, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure
+    return beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure
 
 # 🟢 Ejecutar el Análisis con un Botón
 if st.sidebar.button("Ejecutar Análisis"):
     try:
         tpf_values = np.array([float(x.strip()) for x in tpf_values.split(',') if x.strip()])
-        beta, eta, confiabilidad_actual, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure = weibull_analysis(tpf_values, periodo_confiabilidad, horas_actuales)
+        beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure = weibull_analysis(tpf_values, periodo_confiabilidad, horas_actuales)
 
         # 📌 Mostrar Resultados
         st.subheader("📌 Resultados del Análisis")
         st.write(f"🔹 **Parámetro de forma (β):** {beta:.2f}")
+        st.write(f"📊 **Interpretación del β:** {interpretacion_beta}")
         st.write(f"🔹 **Parámetro de escala (η):** {eta:.2f} horas")
         st.write(f"🔹 **Confiabilidad del equipo a {horas_actuales:.2f} horas:** {confiabilidad_actual:.2f}%")
 
         # 📊 Tabla de Recomendaciones
         st.subheader("📊 Recomendaciones de Mantenimiento")
         st.dataframe(df_recomendaciones)
-
-        # 📊 Tabla de Cálculo de Weibull
-        st.subheader("📊 Datos de Cálculo Weibull")
-        st.dataframe(df_weibull)
 
         # 📈 Gráfico de Confiabilidad Weibull
         st.subheader("📈 Gráfico de Confiabilidad Weibull")
@@ -106,17 +127,7 @@ if st.sidebar.button("Ejecutar Análisis"):
         ax.grid()
         st.pyplot(fig)
 
-        # 📈 Gráfico de Probabilidad de Falla
-        st.subheader("📈 Gráfico de Probabilidad de Falla")
-        fig2, ax2 = plt.subplots()
-        ax2.plot(t_vals, probability_failure * 100, label="Probabilidad de Falla (%)", color="red")
-        ax2.set_xlabel("Tiempo")
-        ax2.set_ylabel("Probabilidad de Falla (%)")
-        ax2.set_title("Función de Probabilidad de Falla")
-        ax2.grid()
-        st.pyplot(fig2)
-
- # 🟢 Generar PDF
+        # 🟢 Generar PDF
         pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones)
         
         # 📄 Botón para Descargar el PDF
