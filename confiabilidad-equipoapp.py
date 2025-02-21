@@ -9,8 +9,8 @@ import io
 # 🟢 Configuración de la Página
 st.set_page_config(page_title="Análisis de Confiabilidad Weibull", layout="wide")
 
-# 🟢 Función para Generar el PDF con la Información y Gráficos
-def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones):
+# 🟢 Función para Generar el PDF con la Información y Tablas
+def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     c.setFont("Helvetica", 12)
@@ -26,7 +26,7 @@ def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_ac
     c.drawString(100, 640, "Recomendaciones de Mantenimiento:")
     y_pos = 620
     for index, row in df_recomendaciones.iterrows():
-        c.drawString(120, y_pos, f"Confiabilidad {row['Confiabilidad (%)']}%: {row['Recomendación']}")
+        c.drawString(120, y_pos, f"Confiabilidad {row['Confiabilidad (%)']}% - {row['Horas de operación']:.2f}h: {row['Recomendación']}")
         y_pos -= 20
 
     c.save()
@@ -73,19 +73,30 @@ def weibull_analysis(tpf_values, period, horas_actuales):
 
     confiabilidad_actual = reliability(horas_actuales) * 100
 
+    confiabilidad_niveles = [85, 80, 72, 60, 55, 50]
+    horas_confiabilidad = {c: eta * (-np.log(c / 100)) ** (1 / beta) for c in confiabilidad_niveles}
+
     df_recomendaciones = pd.DataFrame({
-        'Confiabilidad (%)': [85, 80, 72, 60, 55, 50],
-        'Recomendación': ["Prueba funcional", "Inspección CBM - PdM", "Prueba funcional", 
+        'Confiabilidad (%)': confiabilidad_niveles,
+        'Horas de operación': [horas_confiabilidad[c] for c in confiabilidad_niveles],
+        'Recomendación': ["Prueba funcional", "Inspección CBM - PdM", "Prueba funcional",
                           "Inspección CBM", "Prueba funcional", "Mantenimiento Preventivo"]
     })
 
-    return beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, t_vals, reliability_vals, probability_failure
+    df_weibull = pd.DataFrame({
+        'TPF': tpf_values,
+        'RM (%)': median_rank * 100,
+        'ln(Hora de falla)': ln_tpf,
+        'ln(ln(1/(1-Median Rank)))': ln_ln_1_mr
+    })
+
+    return beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure
 
 # 🟢 Ejecutar el Análisis con un Botón
 if st.sidebar.button("Ejecutar Análisis"):
     try:
         tpf_values = np.array([float(x.strip()) for x in tpf_values.split(',') if x.strip()])
-        beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, t_vals, reliability_vals, probability_failure = weibull_analysis(tpf_values, periodo_confiabilidad, horas_actuales)
+        beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure = weibull_analysis(tpf_values, periodo_confiabilidad, horas_actuales)
 
         # 📌 Mostrar Resultados en Columnas
         col1, col2 = st.columns(2)
@@ -122,8 +133,12 @@ if st.sidebar.button("Ejecutar Análisis"):
             ax2.grid()
             st.pyplot(fig2)
 
+        # 📊 Tabla de Datos de Weibull
+        st.subheader("📊 Datos del Cálculo Weibull")
+        st.dataframe(df_weibull)
+
         # 🟢 Generar PDF
-        pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones)
+        pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull)
         
         # 📄 Botón para Descargar el PDF
         st.download_button(
@@ -137,4 +152,3 @@ if st.sidebar.button("Ejecutar Análisis"):
         st.error("⚠️ Error: Asegúrate de ingresar solo números separados por comas.")
     except Exception as e:
         st.error(f"⚠️ Ocurrió un error inesperado: {str(e)}")
-
