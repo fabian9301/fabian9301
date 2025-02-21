@@ -115,68 +115,19 @@ if st.sidebar.button("Ejecutar Análisis"):
         ax2.set_title("Función de Probabilidad de Falla")
         ax2.grid()
         st.pyplot(fig2)
+
+ # 🟢 Generar PDF
+        pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones)
         
-# 🟢 Botón para Descargar el Análisis en PDF
-        def generate_pdf():
-            buffer = io.BytesIO()
-            c = canvas.Canvas(buffer, pagesize=letter)
-            c.setFont("Helvetica", 12)
-            
-            c.drawString(100, 750, "Análisis de Confiabilidad Weibull")
-            c.drawString(100, 730, f"Equipo: {equipo}, Marca: {marca}, Modelo: {modelo}")
-            c.drawString(100, 710, f"β: {beta:.2f} - {interpretacion_beta}")
-            c.drawString(100, 690, f"η: {eta:.2f} horas")
-            c.drawString(100, 670, f"Confiabilidad a {horas_actuales} horas: {confiabilidad_actual:.2f}%")
-
-            # Agregar tabla de recomendaciones
-            c.drawString(100, 640, "Recomendaciones de Mantenimiento:")
-            y_pos = 620
-            for index, row in df_recomendaciones.iterrows():
-                c.drawString(120, y_pos, f"Confiabilidad {row['Confiabilidad (%)']}%: {row['Recomendación']}")
-                y_pos -= 20
-
-            c.save()
-            buffer.seek(0)
-            return buffer
-
-        pdf_buffer = generate_pdf()
+        # 📄 Botón para Descargar el PDF
         st.download_button(
             label="📄 Descargar Informe en PDF",
             data=pdf_buffer,
             file_name="analisis_weibull.pdf",
             mime="application/pdf"
         )
-def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones):
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    c.setFont("Helvetica", 12)
 
-    # Información General
-    c.drawString(100, 750, "Análisis de Confiabilidad Weibull")
-    c.drawString(100, 730, f"Equipo: {equipo}, Marca: {marca}, Modelo: {modelo}")
-    c.drawString(100, 710, f"β: {beta:.2f} - {interpretacion_beta}")
-    c.drawString(100, 690, f"η: {eta:.2f} horas")
-    c.drawString(100, 670, f"Confiabilidad a {horas_actuales} horas: {confiabilidad_actual:.2f}%")
-
-    # Agregar tabla de recomendaciones
-    c.drawString(100, 640, "Recomendaciones de Mantenimiento:")
-    y_pos = 620
-    for index, row in df_recomendaciones.iterrows():
-        c.drawString(120, y_pos, f"Confiabilidad {row['Confiabilidad (%)']}%: {row['Recomendación']}")
-        y_pos -= 20
-
-    c.save()
-    buffer.seek(0)
-    return buffer
-pdf_buffer = generate_pdf(
-    equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones
-)
-
-st.download_button(
-    label="📄 Descargar Informe en PDF",
-    data=pdf_buffer,
-    file_name="analisis_weibull.pdf",
-    mime="application/pdf"
-    
     except ValueError:
         st.error("⚠️ Error: Asegúrate de ingresar solo números separados por comas.")
+    except Exception as e:
+        st.error(f"⚠️ Ocurrió un error inesperado: {str(e)}")
