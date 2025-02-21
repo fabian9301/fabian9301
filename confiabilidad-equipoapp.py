@@ -90,52 +90,37 @@ def weibull_analysis(tpf_values, period, horas_actuales):
         'ln(ln(1/(1-Median Rank)))': ln_ln_1_mr
     })
 
-    return beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure
+    return beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure, ln_tpf, ln_ln_1_mr
 
 # 🟢 Ejecutar el Análisis con un Botón
 if st.sidebar.button("Ejecutar Análisis"):
     try:
         tpf_values = np.array([float(x.strip()) for x in tpf_values.split(',') if x.strip()])
-        beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure = weibull_analysis(tpf_values, periodo_confiabilidad, horas_actuales)
+        beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure, ln_tpf, ln_ln_1_mr = weibull_analysis(tpf_values, periodo_confiabilidad, horas_actuales)
 
-        # 📌 Mostrar Resultados en Columnas
-        col1, col2 = st.columns(2)
+        # 📌 Mostrar Resultados y Gráficas
+        st.subheader("📌 Resultados del Análisis")
+        st.write(f"🔹 **Parámetro de forma (β):** {beta:.2f}")
+        st.write(f"📊 **Interpretación del β:** {interpretacion_beta}")
+        st.write(f"🔹 **Parámetro de escala (η):** {eta:.2f} horas")
+        st.write(f"🔹 **Confiabilidad del equipo a {horas_actuales:.2f} horas:** {confiabilidad_actual:.2f}%")
 
-        with col1:
-            st.subheader("📌 Resultados del Análisis")
-            st.write(f"🔹 **Parámetro de forma (β):** {beta:.2f}")
-            st.write(f"📊 **Interpretación del β:** {interpretacion_beta}")
-            st.write(f"🔹 **Parámetro de escala (η):** {eta:.2f} horas")
-            st.write(f"🔹 **Confiabilidad del equipo a {horas_actuales:.2f} horas:** {confiabilidad_actual:.2f}%")
+        # 📊 Tablas
+        st.subheader("📊 Recomendaciones de Mantenimiento")
+        st.dataframe(df_recomendaciones)
 
-            # 📊 Tabla de Recomendaciones
-            st.subheader("📊 Recomendaciones de Mantenimiento")
-            st.dataframe(df_recomendaciones)
-
-        with col2:
-            # 📈 Gráfico de Confiabilidad Weibull
-            st.subheader("📈 Gráfico de Confiabilidad Weibull")
-            fig, ax = plt.subplots()
-            ax.plot(t_vals, reliability_vals * 100, label="Confiabilidad (%)", color="blue")
-            ax.set_xlabel("Tiempo")
-            ax.set_ylabel("Confiabilidad (%)")
-            ax.set_title("Función de Confiabilidad Weibull")
-            ax.grid()
-            st.pyplot(fig)
-
-            # 📈 Gráfico de Probabilidad de Falla
-            st.subheader("📈 Gráfico de Probabilidad de Falla")
-            fig2, ax2 = plt.subplots()
-            ax2.plot(t_vals, probability_failure * 100, label="Probabilidad de Falla (%)", color="red")
-            ax2.set_xlabel("Tiempo")
-            ax2.set_ylabel("Probabilidad de Falla (%)")
-            ax2.set_title("Función de Probabilidad de Falla")
-            ax2.grid()
-            st.pyplot(fig2)
-
-        # 📊 Tabla de Datos de Weibull
         st.subheader("📊 Datos del Cálculo Weibull")
         st.dataframe(df_weibull)
+
+        # 📈 Gráficos
+        fig, ax = plt.subplots()
+        ax.scatter(ln_tpf, ln_ln_1_mr, color="purple", label="Ln(ln(1/(1-MR))) vs Ln(TPF)")
+        ax.set_xlabel("Ln(TPF)")
+        ax.set_ylabel("Ln(ln(1/(1-MR)))")
+        ax.set_title("Gráfico de Verificación Weibull")
+        ax.legend()
+        ax.grid()
+        st.pyplot(fig)
 
         # 🟢 Generar PDF
         pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull)
@@ -148,7 +133,5 @@ if st.sidebar.button("Ejecutar Análisis"):
             mime="application/pdf"
         )
 
-    except ValueError:
-        st.error("⚠️ Error: Asegúrate de ingresar solo números separados por comas.")
     except Exception as e:
         st.error(f"⚠️ Ocurrió un error inesperado: {str(e)}")
