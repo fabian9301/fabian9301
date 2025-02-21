@@ -30,7 +30,13 @@ def weibull_analysis(tpf_values, period, horas_actuales):
 
     beta, ln_eta = np.polyfit(ln_tpf, ln_ln_1_mr, 1)
     eta = np.exp(-ln_eta / beta)
-
+# 📌 Análisis del Parámetro Beta
+    if beta < 1:
+        interpretacion_beta = "⚠️ Fallas tempranas - Infant Mortality (Problemas de fabricación o instalación)"
+    elif 1 <= beta < 3:
+        interpretacion_beta = "🔄 Fallas aleatorias - Tasa de falla constante (Errores de operación o condiciones variables)"
+    else:
+        interpretacion_beta = "⏳ Fallas por desgaste - Fase de deterioro (Desgaste natural del equipo)"
     def reliability(t): return np.exp(-(t / eta) ** beta)
 
     t_vals = np.linspace(0, period, 100)
