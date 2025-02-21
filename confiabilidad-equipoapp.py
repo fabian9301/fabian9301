@@ -149,6 +149,3 @@ if st.sidebar.button("Ejecutar Análisis"):
 
     except ValueError:
         st.error("⚠️ Error: Asegúrate de ingresar solo números separados por comas.")
-    except ValueError:
-        st.error("⚠️ Error: Asegúrate de ingresar solo números separados por comas.")
-
