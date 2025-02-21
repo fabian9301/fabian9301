@@ -31,7 +31,7 @@ def weibull_analysis(tpf_values, period, horas_actuales):
     beta, ln_eta = np.polyfit(ln_tpf, ln_ln_1_mr, 1)
     eta = np.exp(-ln_eta / beta)
 
-    # 📌 Análisis del Parámetro Beta
+ # 📌 Análisis del Parámetro Beta
     if beta < 1:
         interpretacion_beta = "⚠️ Fallas tempranas - Infant Mortality (Problemas de fabricación o instalación)"
     elif 1 <= beta < 3:
