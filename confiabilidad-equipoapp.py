@@ -161,7 +161,7 @@ if st.sidebar.button("Ejecutar Análisis"):
         ax.set_ylabel("Ln(ln(1/(1-MR)))")
         ax.set_title("Gráfico de Verificación Weibull")
         ax.grid()
-            
+try:            
 pdf_buffer = generate_pdf(
     equipo, marca, modelo, beta, interpretacion_beta, eta, 
     horas_actuales, confiabilidad_actual, df_recomendaciones, 
