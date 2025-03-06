@@ -162,14 +162,14 @@ if st.sidebar.button("Ejecutar Análisis"):
         ax.set_title("Gráfico de Verificación Weibull")
         ax.grid()
 try:            
-pdf_buffer = generate_pdf(
-    equipo, marca, modelo, beta, interpretacion_beta, eta, 
-    horas_actuales, confiabilidad_actual, df_recomendaciones, 
-    df_weibull, fig_reliability, fig_failure, fig_weibull
-)
+    pdf_buffer = generate_pdf(
+        equipo, marca, modelo, beta, interpretacion_beta, eta, 
+        horas_actuales, confiabilidad_actual, df_recomendaciones, 
+        df_weibull, fig_reliability, fig_failure, fig_weibull
+    )
 
-# 📄 Botón para Descargar el PDF
-st.download_button("📄 Descargar Informe en PDF", data=pdf_buffer, file_name="analisis_weibull.pdf", mime="application/pdf")
+    # 📄 Botón para Descargar el PDF
+    st.download_button("📄 Descargar Informe en PDF", data=pdf_buffer, file_name="analisis_weibull.pdf", mime="application/pdf")
 
-    except Exception as e:
-        st.error(f"⚠️ Ocurrió un error inesperado: {str(e)}")
+except Exception as e:
+    st.error(f"⚠️ Ocurrió un error inesperado: {str(e)}")
