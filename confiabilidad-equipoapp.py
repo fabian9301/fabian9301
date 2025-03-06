@@ -176,10 +176,8 @@ if st.sidebar.button("Ejecutar Análisis"):
         ax2.grid()
         st.pyplot(fig2)
     
-        # 🟢 Generar PDF
-        pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull)
-        
-        # 📄 Botón para Descargar el PDF
+        # 📄 Generar PDF
+        pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull, fig_reliability, fig_failure, fig_weibull)
         st.download_button("📄 Descargar Informe en PDF", data=pdf_buffer, file_name="analisis_weibull.pdf", mime="application/pdf")
 
     except Exception as e:
