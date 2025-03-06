@@ -9,7 +9,41 @@ import io
 # 🟢 Configuración de la Página
 st.set_page_config(page_title="Análisis de Confiabilidad Weibull", layout="wide")
 
-# 🟢 Función para Generar el PDF
+# 🟢 Función para Generar el PDF con Gráficas
+def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull, fig_reliability, fig_failure, fig_weibull):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # Título del informe
+    elements.append(Paragraph("<b>Análisis de Confiabilidad de Equipo - Armada Nacional</b>", styles["Title"]))
+    elements.append(Spacer(1, 12))
+
+    # Información General
+    elements.append(Paragraph(f"<b>Equipo:</b> {equipo}", styles["Normal"]))
+    elements.append(Paragraph(f"<b>Marca:</b> {marca}", styles["Normal"]))
+    elements.append(Paragraph(f"<b>Modelo:</b> {modelo}", styles["Normal"]))
+    elements.append(Paragraph(f"<b>Parámetro de forma (β):</b> {beta:.2f} - {interpretacion_beta}", styles["Normal"]))
+    elements.append(Paragraph(f"<b>Parámetro de escala (η):</b> {eta:.2f} horas", styles["Normal"]))
+    elements.append(Paragraph(f"<b>Confiabilidad a {horas_actuales:.2f} horas:</b> {confiabilidad_actual:.2f}%", styles["Normal"]))
+    elements.append(Spacer(1, 12))
+
+    # Guardar las imágenes de las gráficas
+    for fig, filename in zip([fig_reliability, fig_failure, fig_weibull], ["reliability.png", "failure.png", "weibull.png"]):
+        img_buffer = io.BytesIO()
+        fig.savefig(img_buffer, format="png")
+        img_buffer.seek(0)
+        with open(filename, "wb") as f:
+            f.write(img_buffer.getbuffer())
+        elements.append(Image(filename, width=400, height=250))
+        elements.append(Spacer(1, 12))
+
+    # Guardar PDF
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
 def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
