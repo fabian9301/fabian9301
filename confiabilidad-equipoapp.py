@@ -2,9 +2,9 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import io
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-import io
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
@@ -32,7 +32,7 @@ def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_ac
     elements.append(Paragraph(f"<b>Confiabilidad a {horas_actuales:.2f} horas:</b> {confiabilidad_actual:.2f}%", styles["Normal"]))
     elements.append(Spacer(1, 12))
 
-    # 📌 Agregar Gráficos
+    # 📌 Agregar Gráficos al PDF
     for fig in [fig_reliability, fig_failure, fig_weibull]:
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format="png")
