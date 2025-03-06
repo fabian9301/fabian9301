@@ -44,29 +44,6 @@ def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_ac
     buffer.seek(0)
     return buffer
 
-def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull):
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    c.setFont("Helvetica", 12)
-
-    # 📌 Información del Análisis
-    c.drawString(100, 750, "Análisis de Confiabilidad Weibull")
-    c.drawString(100, 730, f"Equipo: {equipo}, Marca: {marca}, Modelo: {modelo}")
-    c.drawString(100, 710, f"β: {beta:.2f} - {interpretacion_beta}")
-    c.drawString(100, 690, f"η: {eta:.2f} horas")
-    c.drawString(100, 670, f"Confiabilidad a {horas_actuales} horas: {confiabilidad_actual:.2f}%")
-
-    # 📊 Tabla de Recomendaciones
-    c.drawString(100, 640, "Recomendaciones de Mantenimiento:")
-    y_pos = 620
-    for index, row in df_recomendaciones.iterrows():
-        c.drawString(120, y_pos, f"Confiabilidad {row['Confiabilidad (%)']}% - {row['Horas de operación']:.2f}h: {row['Recomendación']}")
-        y_pos -= 20
-
-    c.save()
-    buffer.seek(0)
-    return buffer
-
 # 🟢 Título
 st.title("📊 Análisis de Confiabilidad Weibull")
 
