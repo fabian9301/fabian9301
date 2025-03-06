@@ -121,7 +121,27 @@ if st.sidebar.button("Ejecutar Análisis"):
         ax.legend()
         ax.grid()
         st.pyplot(fig)
+with col2:
+            # 📈 Gráfico de Confiabilidad Weibull
+            st.subheader("📈 Gráfico de Confiabilidad Weibull")
+            fig, ax = plt.subplots()
+            ax.plot(t_vals, reliability_vals * 100, label="Confiabilidad (%)", color="blue")
+            ax.set_xlabel("Tiempo")
+            ax.set_ylabel("Confiabilidad (%)")
+            ax.set_title("Función de Confiabilidad Weibull")
+            ax.grid()
+            st.pyplot(fig)
 
+            # 📈 Gráfico de Probabilidad de Falla
+            st.subheader("📈 Gráfico de Probabilidad de Falla")
+            fig2, ax2 = plt.subplots()
+            ax2.plot(t_vals, probability_failure * 100, label="Probabilidad de Falla (%)", color="red")
+            ax2.set_xlabel("Tiempo")
+            ax2.set_ylabel("Probabilidad de Falla (%)")
+            ax2.set_title("Función de Probabilidad de Falla")
+            ax2.grid()
+            st.pyplot(fig2)
+    
         # 🟢 Generar PDF
         pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull)
         
