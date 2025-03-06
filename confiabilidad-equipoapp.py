@@ -5,6 +5,8 @@ import pandas as pd
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet
 
 # 🟢 Configuración de la Página
 st.set_page_config(page_title="Análisis de Confiabilidad Weibull", layout="wide")
