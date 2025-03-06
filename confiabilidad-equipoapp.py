@@ -161,7 +161,6 @@ if st.sidebar.button("Ejecutar Análisis"):
         ax.set_ylabel("Ln(ln(1/(1-MR)))")
         ax.set_title("Gráfico de Verificación Weibull")
         ax.grid()
-      )
 # ✅ Se agrega un bloque `except` correctamente indentado
         except Exception as e:
         st.error(f"⚠️ Ocurrió un error inesperado: {str(e)}")
