@@ -126,12 +126,7 @@ if st.sidebar.button("Ejecutar Análisis"):
         pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull)
         
         # 📄 Botón para Descargar el PDF
-        st.download_button(
-            label="📄 Descargar Informe en PDF",
-            data=pdf_buffer,
-            file_name="analisis_weibull.pdf",
-            mime="application/pdf"
-        )
+        st.download_button("📄 Descargar Informe en PDF", data=pdf_buffer, file_name="analisis_weibull.pdf", mime="application/pdf")
 
     except Exception as e:
         st.error(f"⚠️ Ocurrió un error inesperado: {str(e)}")
