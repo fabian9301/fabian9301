@@ -161,7 +161,7 @@ if st.sidebar.button("Ejecutar Análisis"):
         ax.set_ylabel("Ln(ln(1/(1-MR)))")
         ax.set_title("Gráfico de Verificación Weibull")
         ax.grid()
-try:
+    try:
     # 📌 Generar el PDF
     pdf_buffer = generate_pdf(
         equipo, marca, modelo, beta, interpretacion_beta, eta,
@@ -178,5 +178,5 @@ try:
     )
 
 # ✅ Se agrega un bloque `except` correctamente indentado
-except Exception as e:
+    except Exception as e:
     st.error(f"⚠️ Ocurrió un error inesperado: {str(e)}")
