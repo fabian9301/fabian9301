@@ -31,14 +31,12 @@ def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_ac
     elements.append(Paragraph(f"<b>Confiabilidad a {horas_actuales:.2f} horas:</b> {confiabilidad_actual:.2f}%", styles["Normal"]))
     elements.append(Spacer(1, 12))
 
-    # Guardar las imágenes de las gráficas
-    for fig, filename in zip([fig_reliability, fig_failure, fig_weibull], ["reliability.png", "failure.png", "weibull.png"]):
+ # 📌 Guardar y Agregar Gráficos al PDF
+    for fig in [fig_reliability, fig_failure, fig_weibull]:
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format="png")
         img_buffer.seek(0)
-        with open(filename, "wb") as f:
-            f.write(img_buffer.getbuffer())
-        elements.append(Image(filename, width=400, height=250))
+        elements.append(Image(img_buffer, width=400, height=250))
         elements.append(Spacer(1, 12))
 
     # Guardar PDF
