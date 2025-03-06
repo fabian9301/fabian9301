@@ -113,19 +113,24 @@ if st.sidebar.button("Ejecutar Análisis"):
         st.dataframe(df_weibull)
 
         # 📈 Gráficos
+        st.subheader("📈 Gráfico de Confiabilidad Weibull")
         fig, ax = plt.subplots()
-        ax.scatter(ln_tpf, ln_ln_1_mr, color="purple", label="Ln(ln(1/(1-MR))) vs Ln(TPF)")
-        ax.set_xlabel("Ln(TPF)")
-        ax.set_ylabel("Ln(ln(1/(1-MR)))")
-        ax.set_title("Gráfico de Verificación Weibull")
-        ax.legend()
+        ax.plot(t_vals, reliability_vals * 100, label="Confiabilidad (%)", color="blue")
+        ax.set_xlabel("Tiempo")
+        ax.set_ylabel("Confiabilidad (%)")
         ax.grid()
         st.pyplot(fig)
 
-        # 🟢 Generar PDF
-        pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull)
-        
+        st.subheader("📈 Gráfico de Probabilidad de Falla")
+        fig, ax = plt.subplots()
+        ax.plot(t_vals, probability_failure * 100, label="Probabilidad de Falla (%)", color="red")
+        ax.set_xlabel("Tiempo")
+        ax.set_ylabel("Probabilidad de Falla (%)")
+        ax.grid()
+        st.pyplot(fig)
+
         # 📄 Botón para Descargar el PDF
+        pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull)
         st.download_button("📄 Descargar Informe en PDF", data=pdf_buffer, file_name="analisis_weibull.pdf", mime="application/pdf")
 
     except Exception as e:
