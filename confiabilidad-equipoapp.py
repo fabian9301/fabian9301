@@ -9,7 +9,7 @@ import io
 # 🟢 Configuración de la Página
 st.set_page_config(page_title="Análisis de Confiabilidad Weibull", layout="wide")
 
-# 🟢 Función para Generar el PDF con la Información y Tablas
+# 🟢 Función para Generar el PDF
 def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
@@ -59,7 +59,7 @@ def weibull_analysis(tpf_values, period, horas_actuales):
 
     # 📌 Análisis del Parámetro Beta
     if beta < 1:
-        interpretacion_beta = "⚠️ Fallas tempranas - Problemas de fabricación o instalación"
+        interpretacion_beta = "⚠️ Fallas tempranas - Problemas de fabricación"
     elif 1 <= beta < 3:
         interpretacion_beta = "🔄 Fallas aleatorias - Tasa de falla constante"
     else:
@@ -98,12 +98,12 @@ if st.sidebar.button("Ejecutar Análisis"):
         tpf_values = np.array([float(x.strip()) for x in tpf_values.split(',') if x.strip()])
         beta, eta, confiabilidad_actual, interpretacion_beta, df_recomendaciones, df_weibull, t_vals, reliability_vals, probability_failure, ln_tpf, ln_ln_1_mr = weibull_analysis(tpf_values, periodo_confiabilidad, horas_actuales)
 
-        # 📌 Mostrar Resultados y Gráficas
+        # 📌 Mostrar Resultados
         st.subheader("📌 Resultados del Análisis")
         st.write(f"🔹 **Parámetro de forma (β):** {beta:.2f}")
         st.write(f"📊 **Interpretación del β:** {interpretacion_beta}")
         st.write(f"🔹 **Parámetro de escala (η):** {eta:.2f} horas")
-        st.write(f"🔹 **Confiabilidad del equipo a {horas_actuales:.2f} horas:** {confiabilidad_actual:.2f}%")
+        st.write(f"🔹 **Confiabilidad a {horas_actuales:.2f} horas:** {confiabilidad_actual:.2f}%")
 
         # 📊 Tablas
         st.subheader("📊 Recomendaciones de Mantenimiento")
