@@ -5,24 +5,25 @@ import pandas as pd
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
 
 # 🟢 Configuración de la Página
 st.set_page_config(page_title="Análisis de Confiabilidad Weibull", layout="wide")
 
-# 🟢 Función para Generar el PDF con Gráficas
+# 🟢 Función para Generar el PDF con Gráficas y Tablas
 def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull, fig_reliability, fig_failure, fig_weibull):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     elements = []
 
-    # Título del informe
+    # 📌 Título del Informe
     elements.append(Paragraph("<b>Análisis de Confiabilidad de Equipo - Armada Nacional</b>", styles["Title"]))
     elements.append(Spacer(1, 12))
 
-    # Información General
+    # 📌 Información General
     elements.append(Paragraph(f"<b>Equipo:</b> {equipo}", styles["Normal"]))
     elements.append(Paragraph(f"<b>Marca:</b> {marca}", styles["Normal"]))
     elements.append(Paragraph(f"<b>Modelo:</b> {modelo}", styles["Normal"]))
@@ -31,7 +32,7 @@ def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_ac
     elements.append(Paragraph(f"<b>Confiabilidad a {horas_actuales:.2f} horas:</b> {confiabilidad_actual:.2f}%", styles["Normal"]))
     elements.append(Spacer(1, 12))
 
- # 📌 Guardar y Agregar Gráficos al PDF
+    # 📌 Agregar Gráficos
     for fig in [fig_reliability, fig_failure, fig_weibull]:
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format="png")
@@ -39,10 +40,31 @@ def generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_ac
         elements.append(Image(img_buffer, width=400, height=250))
         elements.append(Spacer(1, 12))
 
-    # Guardar PDF
+    # 📌 Convertir DataFrames a Tablas para ReportLab
+    for title, df in [("Recomendaciones de Mantenimiento", df_recomendaciones), ("Datos Weibull", df_weibull)]:
+        table_data = [df.columns.tolist()] + df.values.tolist()
+        table = Table(table_data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(Paragraph(f"<b>{title}</b>", styles["Heading2"]))
+        elements.append(table)
+        elements.append(Spacer(1, 12))
+
+    # 📌 Guardar PDF
     doc.build(elements)
     buffer.seek(0)
     return buffer
+
+# 📌 Llamar la función para generar el PDF después de definir los gráficos
+pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull, fig_reliability, fig_failure, fig_weibull)
+
+# 📄 Botón para Descargar el PDF
+st.download_button("📄 Descargar Informe en PDF", data=pdf_buffer, file_name="analisis_weibull.pdf", mime="application/pdf")
+
 
 # 🟢 Título
 st.title("📊 Análisis de Confiabilidad Weibull")
@@ -123,35 +145,30 @@ if st.sidebar.button("Ejecutar Análisis"):
         st.subheader("📊 Datos del Cálculo Weibull")
         st.dataframe(df_weibull)
 
-        # 📈 Gráficos
-        fig, ax = plt.subplots()
-        ax.scatter(ln_tpf, ln_ln_1_mr, color="purple", label="Ln(ln(1/(1-MR))) vs Ln(TPF)")
-        ax.set_xlabel("Ln(TPF)")
-        ax.set_ylabel("Ln(ln(1/(1-MR)))")
-        ax.set_title("Gráfico de Verificación Weibull")
-        ax.legend()
-        ax.grid()
-        st.pyplot(fig)
-
-        # 📈 Gráfico de Confiabilidad Weibull
-        st.subheader("📈 Gráfico de Confiabilidad Weibull")
-        fig, ax = plt.subplots()
+       # 📈 Gráfico de Confiabilidad Weibull
+        fig_reliability, ax = plt.subplots()
         ax.plot(t_vals, reliability_vals * 100, label="Confiabilidad (%)", color="blue")
         ax.set_xlabel("Tiempo")
         ax.set_ylabel("Confiabilidad (%)")
         ax.set_title("Función de Confiabilidad Weibull")
         ax.grid()
-        st.pyplot(fig)
 
         # 📈 Gráfico de Probabilidad de Falla
-        st.subheader("📈 Gráfico de Probabilidad de Falla")
-        fig2, ax2 = plt.subplots()
-        ax2.plot(t_vals, probability_failure * 100, label="Probabilidad de Falla (%)", color="red")
-        ax2.set_xlabel("Tiempo")
-        ax2.set_ylabel("Probabilidad de Falla (%)")
-        ax2.set_title("Función de Probabilidad de Falla")
-        ax2.grid()
-        st.pyplot(fig2)
+        fig_failure, ax = plt.subplots()
+        ax.plot(t_vals, probability_failure * 100, label="Probabilidad de Falla (%)", color="red")
+        ax.set_xlabel("Tiempo")
+        ax.set_ylabel("Probabilidad de Falla (%)")
+        ax.set_title("Función de Probabilidad de Falla")
+        ax.grid()
+
+        # 📈 Gráfico de Verificación Weibull
+        fig_weibull, ax = plt.subplots()
+        ax.scatter(ln_tpf, ln_ln_1_mr, color="purple", label="Ln(ln(1/(1-MR))) vs Ln(TPF)")
+        ax.set_xlabel("Ln(TPF)")
+        ax.set_ylabel("Ln(ln(1/(1-MR)))")
+        ax.set_title("Gráfico de Verificación Weibull")
+        ax.grid()
+
     
         # 📄 Generar PDF
         pdf_buffer = generate_pdf(equipo, marca, modelo, beta, interpretacion_beta, eta, horas_actuales, confiabilidad_actual, df_recomendaciones, df_weibull, fig_reliability, fig_failure, fig_weibull)
